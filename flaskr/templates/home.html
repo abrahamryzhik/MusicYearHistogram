@@ -1,0 +1,39 @@
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<div id="loading"></div>
+<div id="content">
+<div class="">
+        <div class="">
+            <h1>Spotify Year Histogram Generator</h1>
+        </div>
+        <div class="">
+            <br />
+            <form action="/go" method="post">
+                <br />
+                <div class="">
+ 
+                    <center>
+                        <button type="submit" class="btn btn-danger spotify_button" id="" style="" onclick="loading();"><h4><i class="fab fa-spotify"></i> Analyze My Library</h4></button>
+                    </center>
+                </div>
+ 
+            </form>
+ 
+    </div>
+ 
+</div>
+</div>
+
+<div id="loading_text"></div>
+
+
+<script type="text/javascript">// <![CDATA[
+        function loading(){
+            // $("#loading").show();
+            // $("#content").hide(); 
+            //document.getElementById('loading').show()
+
+            document.getElementById('content').style.display = 'none';
+
+            document.getElementById('loading_text').innerHTML = "Loading please wait...";    
+        }
+// ]]></script>
