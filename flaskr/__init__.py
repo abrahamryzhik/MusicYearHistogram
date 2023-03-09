@@ -12,7 +12,7 @@ from matplotlib.figure import Figure
 
 import io
 
-from spotify_config import REDIRECT_URI, CLI_ID, CLI_SEC
+from spotify_config import REDIRECT_URI, CLI_ID, CLI_SEC, APP_SECRET_KEY
 
 API_BASE = 'https://accounts.spotify.com'
 
@@ -32,7 +32,7 @@ def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY=APP_SECRET_KEY,
         DATABASE=os.path.join(app.instance_path, 'flaskr.sqlite'),
     )
 
