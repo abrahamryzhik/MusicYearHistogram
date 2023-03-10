@@ -3,7 +3,7 @@ import os
 from flask import Flask, render_template, redirect, request, session, make_response,session,redirect, Response
 import spotipy
 import spotipy.util as util
-#from credentz import *
+
 import time
 import json
 
@@ -18,16 +18,18 @@ API_BASE = 'https://accounts.spotify.com'
 
 SCOPE = "user-library-read,playlist-modify-private,playlist-modify-public,user-top-read"
 
-#app.secret_key = SSK
 
 
 
 SHOW_DIALOG = True
 
-#years = {}
 
+#dictionary to store the data for each user
 user_to_data = {}
 
+
+# Aoo factory function modeled off the Flask tutorials
+# All of the functionality is located here 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
@@ -54,6 +56,8 @@ def create_app(test_config=None):
     def hello():
         return 'Hello, World!'
 
+
+    # When first loading the site we perform the Spotify authentication
     @app.route("/")
     def verify():
         # Don't reuse a SpotifyOAuth object because they store token info and you could leak user tokens if you reuse a SpotifyOAuth object
@@ -62,6 +66,8 @@ def create_app(test_config=None):
         print(auth_url)
         return redirect(auth_url)
 
+
+    # Home page
     @app.route("/index")
     def index():
         return render_template("home.html")
@@ -69,6 +75,7 @@ def create_app(test_config=None):
     # authorization-code-flow Step 2.
     # Have your application request refresh and access tokens;
     # Spotify returns access and refresh tokens
+    # This is the redirect URI given to Spotify to return to after the authentication completes
     @app.route("/api_callback")
     def api_callback():
         # Don't reuse a SpotifyOAuth object because they store token info and you could leak user tokens if you reuse a SpotifyOAuth object
@@ -86,35 +93,34 @@ def create_app(test_config=None):
     # authorization-code-flow Step 3.
     # Use the access token to access the Spotify Web API;
     # Spotify returns requested data
+    # We pull all of the saved songs from the user and create a map for each user from year to number of songs they have saved from that year
     @app.route("/go", methods=['POST', 'GET'])
     def go():
 
-        #if request.method == 'POST' or request.method == 'GET':
-        #print("here0")
         session['token_info'], authorized = get_token(session)
         session.modified = True
-        #print("here1")
+        
         if not authorized:
             return redirect('/')
         data = request.form
         sp = spotipy.Spotify(auth=session.get('token_info').get('access_token'))
-        #print("here2")
-        #response = sp.current_user_top_tracks(limit=data['num_tracks'], time_range=data['time_range'])
 
-        results = sp.current_user_saved_tracks(limit=1)
+        #results = sp.current_user_saved_tracks(limit=1)
 
         me = sp.current_user()
         print(me['display_name'])
         print(me['id'])
 
 
+
+        # Avoiding redownloading all the data on refresh, should only redownload if they click the button again
         if request.method == 'GET' and me['id'] in user_to_data:
             years = user_to_data[me['id']]
             biggest_year = max(years, key=years.get)
 
             return render_template("results.html", data=request.form, biggest_year=biggest_year)
 
-        track = results['items'][0]['track']['name']
+        #track = results['items'][0]['track']['name']
         #print(track)
 
 
@@ -126,11 +132,13 @@ def create_app(test_config=None):
 
         results = sp.current_user_saved_tracks(limit=50)
 
+
+        # Request the user's saved tracks 50 at a time
         while len(results['items']) > 0:
 
             if offset % 1000 == 0:
                 print("Analyzing tracks through " + str(offset + 1000))
-                render_template("loading.html", song_num=offset+1000)
+                #render_template("loading.html", song_num=offset+1000)
 
             for item in results['items']:
                 date = item['track']['album']['release_date']
@@ -145,30 +153,18 @@ def create_app(test_config=None):
 
             results = sp.current_user_saved_tracks(limit=50, offset=offset)
 
-        #print(data)
-
-
-
-        # data = {"dummyv" : "woohoo"}
-
-
-        #print(years)
+        
 
         biggest_year = max(years, key=years.get)
 
         user_to_data[me['id']] = years
 
 
-        # print(json.dumps(response))
 
         return render_template("results.html", data=data, biggest_year=biggest_year)
-        # else:
-        #     print("doing the go")
-        #     biggest_year = max(years, key=years.get)
-
-        #     return render_template("results.html", data=request.form, biggest_year=biggest_year)
 
  
+    # The following two functions work together to create a plot of the user's data, a bar graph showing each year
     @app.route('/plot.png')
     def plot_png():
         fig = create_figure()
@@ -194,8 +190,6 @@ def create_app(test_config=None):
         print(me['id'])
 
         years = user_to_data[me['id']]
-
-
 
 
         min_year = min(years.keys())
@@ -237,7 +231,6 @@ def create_app(test_config=None):
         token_valid = False
         token_info = session.get("token_info", {})
 
-        #print("hereg1")
 
         # Checking if the session already has a token stored
         if not (session.get('token_info', False)):
@@ -245,9 +238,6 @@ def create_app(test_config=None):
             print("hereg2")
             token_valid = False
             return token_info, token_valid
-
-        #print("hereg3")
-
 
 
         # Checking if token has expired
@@ -258,7 +248,6 @@ def create_app(test_config=None):
 
         # Refreshing token if it has expired
         if (is_token_expired):
-            # print("here2g4")
             # Don't reuse a SpotifyOAuth object because they store token info and you could leak user tokens if you reuse a SpotifyOAuth object
             sp_oauth = spotipy.oauth2.SpotifyOAuth(client_id = CLI_ID, client_secret = CLI_SEC, redirect_uri = REDIRECT_URI, scope = SCOPE)
             token_info = sp_oauth.refresh_access_token(session.get('token_info').get('refresh_token'))

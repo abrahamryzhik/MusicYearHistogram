@@ -1,3 +1,6 @@
+# This file is not used by the website, but you can use this to generate the data from your own machine by running this script
+
+
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
