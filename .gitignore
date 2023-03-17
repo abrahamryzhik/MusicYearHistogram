@@ -1,2 +1,3 @@
 spotify_config.py
 .cache
+__pycache__/
